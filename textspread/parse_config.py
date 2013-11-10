@@ -39,7 +39,16 @@ class ParseConfig(object):
         self.result_list = []
         self.extract_list = []
         self.header_column_index = 0
-        
+        # Input file parsed in terms of "chunks", separated by markers, 
+        # but which may (or may not) have header information in the first
+        # line(s) of the chunk, that applies to everything in the chunk.
+        # Chunks may contain one or more items/records.  If more than one,
+        # it is separated within the chunk by a different (optional) 
+        # marker.
+        self.chunk_separator_re = r'\s*=====+\s*'
+        self.item_separator_re = r'\s*--+\s*'
+        # Chunks/items less than this length will not be parsed.
+        self.item_min_length = 10
 
     def add_extract(self, regex, mappings, subs=None):
         self.extract_list.append((regex, mappings, subs))       
@@ -54,16 +63,14 @@ class ParseConfig(object):
             current_date = None
             for line in f:
                 l = line.rstrip('\n')
-                if re.match(r'\s*=====+\s*', l):
-                    #print "====="
-                    if len(current_text) > 10:
+                if re.match(self.chunk_separator_re, l):
+                    if len(current_text) > self.item_min_length:
                         self.parse_main(current_date, current_text)
                     current_text = ""
                     current_date = None
                     continue
-                if re.match(r'\s*--+\s*', l):
-                    #print "---"
-                    if len(current_text) > 10:
+                if self.item_separator_re is not None and re.match(self.item_separator_re, l):
+                    if len(current_text) > self.item_min_length:
                         self.parse_main(current_date, current_text)
                     current_text = ""
                     continue
@@ -123,5 +130,4 @@ class ParseConfig(object):
                         if results[res_index] and results[res_index].lower() == sl[0].lower():
                             results[res_index] = sl[1]
         self.result_list.append(results)
-        #print results
                     

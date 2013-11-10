@@ -27,8 +27,6 @@
 #   - Read all this from config file(s)
 #
 
-import textspread.parse_config
-
 
 def get_parse_config( ):
     """Read config file(s).  Returns list of ParseConfig objects.
@@ -37,41 +35,14 @@ def get_parse_config( ):
     
     """
     
-    plist = []
+    parse_func = None
+    
+    try:
+        import textspread.asr_config
+        parse_func = textspread.asr_config.asr_parse_config
+    except ImportError:
+        import textspread.example_config
+        parse_func = textspread.example_config.example_parse_config
 
-    p = textspread.parse_config.ParseConfig("Stock Tips")
-    p.filepath = "C:/path/to/input_file.txt"
-    p.column_list = ["Stock","Direction","Open Date",
-             "Open Price","Rec Limit Price","Rec Stop Loss",
-             "Rec Trailing Stop","Closed Date","Close Price",
-             "Market Price","Stop Loss","Stop Distance", "Risk Amount","Qty to Buy",
-             "Position Amount","Notes","Pad1", "Pad2", "Name"
-             ]
-    p.header_column_index = 2
-    p.main_regex = r'(A.*?(?:Portfolio|Report).*?(?:buy|sell).*?(unit|stop).*?)(?:\n\n|$)'
-    p.add_extract(r'\s*(buy|sell)\w*\s+\d+,?\d*(?:\s+units)?(?:\s+of)?\s+(.*?)\((\w+)\)(?:.*?(?:up|down)\s*to\s*\$(\d+\.*\d*))?',
-                        ((1, 1),
-                         (2, 18),
-                         (3, 0),
-                         (4, 4),
-                         (4, 9)
-                         ),
-                         (
-                          (1, (('buy', 'LONG'), ('sell', 'SHORT'))),
-                         )
-                        )   
-    p.add_extract(r'.*?Stop(?:\s*loss)?(?:\s*is)?(?:\s*at)?\s+\$(\d+\.?\d*)',
-                  ((1, 5),(1,10))
-                  )
-    p.add_extract(r'(?:The|An)\s+entry\s+price.*?\$(\d+\.*\d*)',
-                  ((1, 3),)
-                  )
-    p.add_extract(r'\[ent.*?\$?(\d+\.*\d*)',
-                  ((1, 3),)
-                  )    
-    p.parse()
-    plist.append(p)
-
-    return plist
-
+    return parse_func()
 
