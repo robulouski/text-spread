@@ -90,7 +90,7 @@ def main():
         config_filename = 'config.yaml'
     plist = textspread.config.get_parse_config(config_filename)
     if not plist:
-        logging.error("CONFIGURATION ERROR")
+        logging.error("Oops!  Something went wrong with the configuration!")
         sys.exit("CONFIGURATION ERROR")
     
     app = PySide.QtGui.QApplication(sys.argv)

@@ -51,7 +51,7 @@ class TableWidgetCustom(PySide.QtGui.QTableWidget):
 
         for idx in indexes:
             row = idx.row()
-            print row
+            #print row
             for col in range(0, self.columnCount()):
                 item = self.item(row, col)
                 if item:

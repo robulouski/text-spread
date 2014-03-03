@@ -27,8 +27,13 @@
 #   - Read all this from config file(s)
 #
 
-import importlib
+#import importlib
 import logging
+import json
+import yaml
+#from pprint import pprint
+
+from textspread.parse_config import ParseConfig
 
 
 logger = logging.getLogger(__name__)
@@ -42,22 +47,30 @@ def get_parse_config(filename):
     """
     
     logger.info("Reading configuration from: %s", filename)
-    parse_func = None
-    importname = None
+    config = None
+    plist = []
     
     try:
         with open(filename) as f:
-            line = f.readline()
-            importname = 'textspread.' + line.rstrip('\n')
-
-        i = importlib.import_module(importname)
-        parse_func = i.get_parse_config
+#            config = json.load(f)
+            config = yaml.load(f)
     except IOError:
         logger.error("Unable to open config file: %s", filename)
         return None
-    except ImportError:
-        logger.error("Unable to find config module: %s", importname)
-        return None
 
-    return parse_func()
+    #if config:
+    #    pprint(config)
+
+    name = config.get("name")
+    if not name:
+        logger.error("Missing name in config: %s", filename)
+        return None
+    
+    logger.debug("Creating ParseConfig: %s", name)
+    pc = ParseConfig(name)
+    pc.initialise(config)
+    pc.parse()
+    plist.append(pc)
+    
+    return plist
 
