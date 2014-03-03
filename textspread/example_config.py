@@ -26,7 +26,7 @@
 import textspread.parse_config
 
 
-def example_parse_config( ):
+def get_parse_config( ):
     
     plist = []
 

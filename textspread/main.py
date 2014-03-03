@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 #  TextSpread
-#  Copyright (C) 2013 Robert Iwancz
+#  Copyright (C) 2013-2014 Robert Iwancz
 #
 #  This file is part of TextSpread.
 #
@@ -24,6 +24,8 @@
 #  Application entry point.
 #
 import sys
+import logging
+
 import PySide.QtGui
 
 from textspread import VERSION_STRING, APPLICATION_NAME
@@ -31,23 +33,65 @@ from textspread.ui.mainwin import MainWindow
 import textspread.config
 
 
-
-def main():
+def parse_arguments():
+    rv = None
     try:
         import argparse
         parser = argparse.ArgumentParser(description= APPLICATION_NAME + ': ' + 
-            'Parse text files into tables.')
+            'Parse data in text files into a more tabular format (table/spreadsheet/database).')
+        
+        parser.add_argument('config', help='Configuration filename')
+
+        parser.add_argument('-i', '--info', action='store_const',
+                            const=logging.INFO, dest='loglevel',
+                            help='show info messages.')
+    
+        parser.add_argument('-q', '--quiet', action='store_const',
+                            const=logging.CRITICAL, dest='loglevel',
+                            help='show only critical errors.')
+    
+        parser.add_argument('-D', '--debug', action='store_const',
+                            const=logging.DEBUG, dest='loglevel',
+                            help='show all message, including debug messages.')        
+        
         parser.add_argument('-v', '--version', 
                             action='version', 
                             version="%s %s" % (APPLICATION_NAME, 
                                                VERSION_STRING))
-        parser.parse_known_args()
+        rv = parser.parse_known_args()[0]
     except ImportError:
         # Just forget the whole command line argument parsing thing if
         # running a version of python without argparse :(
         pass
 
-    plist = textspread.config.get_parse_config()
+    return rv
+
+
+def init_logging(level=None):
+    logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(levelname)s:\t%(message)s\t[%(name)s]')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    
+    if level:
+        logger.setLevel(level)
+        logger.info("Starting %s v%s: setting log level to %d", APPLICATION_NAME, VERSION_STRING, level)
+    else:
+        logger.info("Starting " + APPLICATION_NAME + " " + VERSION_STRING)
+
+
+def main():
+    args = parse_arguments()
+    if args:
+        init_logging(args.loglevel)
+        config_filename = args.config
+    else:
+        config_filename = 'config.yaml'
+    plist = textspread.config.get_parse_config(config_filename)
+    if not plist:
+        logging.error("CONFIGURATION ERROR")
+        sys.exit("CONFIGURATION ERROR")
     
     app = PySide.QtGui.QApplication(sys.argv)
     mainwin = MainWindow(plist)

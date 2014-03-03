@@ -21,6 +21,6 @@
 
 APPLICATION_NAME = "TextSpread"
 
-version_data = (0, 2, 0)
+version_data = (0, 3, 0)
 VERSION_STRING = "%d.%d.%d" % version_data
 __version__ = VERSION_STRING

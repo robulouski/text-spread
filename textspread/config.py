@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 #  TextSpread
-#  Copyright (C) 2013 Robert Iwancz
+#  Copyright (C) 2013-2014 Robert Iwancz
 #
 #  This file is part of TextSpread.
 #
@@ -27,22 +27,37 @@
 #   - Read all this from config file(s)
 #
 
+import importlib
+import logging
 
-def get_parse_config( ):
+
+logger = logging.getLogger(__name__)
+
+
+def get_parse_config(filename):
     """Read config file(s).  Returns list of ParseConfig objects.
 
        TODO: read all this from config file
     
     """
     
+    logger.info("Reading configuration from: %s", filename)
     parse_func = None
+    importname = None
     
     try:
-        import textspread.asr_config
-        parse_func = textspread.asr_config.asr_parse_config
+        with open(filename) as f:
+            line = f.readline()
+            importname = 'textspread.' + line.rstrip('\n')
+
+        i = importlib.import_module(importname)
+        parse_func = i.get_parse_config
+    except IOError:
+        logger.error("Unable to open config file: %s", filename)
+        return None
     except ImportError:
-        import textspread.example_config
-        parse_func = textspread.example_config.example_parse_config
+        logger.error("Unable to find config module: %s", importname)
+        return None
 
     return parse_func()
 

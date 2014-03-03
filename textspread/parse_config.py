@@ -1,5 +1,5 @@
 #  TextSpread
-#  Copyright (C) 2013 Robert Iwancz
+#  Copyright (C) 2013-2014 Robert Iwancz
 #
 #  This file is part of TextSpread.
 #

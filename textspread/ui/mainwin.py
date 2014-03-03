@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 #  TextSpread
-#  Copyright (C) 2013 Robert Iwancz
+#  Copyright (C) 2013-2014 Robert Iwancz
 #
 #  This file is part of TextSpread.
 #
@@ -74,7 +74,9 @@ class MainWindow(QMainWindow):
                                 if row[col]:
                                     item = QTableWidgetItem(row[col])
                                     t.resultTable.setItem(row_index, col, item)
-                            row_index = row_index + 1                                                                            
+                            row_index = row_index + 1
+                        if row_index > 0:
+                            t.resultTable.setCurrentCell(row_index - 1, 0)
                 tabWidget.addTab(t.resultTable, p.name)
                 self.tabList.append(t)
         
@@ -101,7 +103,7 @@ class MainWindow(QMainWindow):
            "Version " + VERSION_STRING + " " 
         about_text += """
 <p>Design and coding by Robert Iwancz <br />
-Copyright (c) 2013</p>
+Copyright (c) 2013-2014</p>
 <p><a href="http://www.voidynullness.net">www.voidynullness.net</a></p>
 <center><p>___ </p></center>
 <p>This application is free software released under the GNU General Public License.  It is distributed WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.</p>
