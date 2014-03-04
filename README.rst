@@ -19,10 +19,10 @@ Motivation
 ----------
 
 There are text file(s).  They contain data, somewhat freeform, but orderly
-enough that parsing with regular expressions is appropriate.
+enough that parsing with regular expressions is workable.
 
 You desire to extract said data into another, more tabular form --
-spreadsheet, database, CSV file.
+spreadsheet, database, CSV file, etc
 
 The data is in "chunks".  Each chunk is delimited by a line with a certain
 pattern of characters (i.e. something that can be represented by a regex,
@@ -31,16 +31,21 @@ and will not be confused with actual chunk data).
 A chunk may represent an individual "record".  Alternatively, a single
 chunk may contain multiple discrete items of data that need to be split up
 first (based on a different delimiter).  Both cases can be accommodated.
-For the sake of terminology, we will say that an input file contains
-"chunks" of data, separated by a delimiter (specified by the
+
+For the sake of consistent terminology, we will say that an input file
+contains "chunks" of data, separated by a delimiter (specified by the
 chunk-regex).  A chunk may contain one or more "items" of data, separated
-by an item delimiter (item-regex).  If an item-regex is not specified,
-it's assumed chunks will only contain a single item of data.
+by an item delimiter (item-regex).  If an item-regex is not specified, it's
+assumed chunks will only contain a single item of data.
 
 Chunks may (optionally) contain header data, that applies to every item in
 the chunk.  (For example, chunks could consist of items for a particular
 date, the first line of the chunk being the date, which applies to all
 items in that chunk.)
+
+The goal of TextSpread is to provide the ability to parse and extract data
+from such files by writing a simple YAML configuration file -- instead of
+having to write/modify bespoke scripts with lots of boilerplate code.
 
 
 Quick start
@@ -53,7 +58,28 @@ by a line of '=' (equal) characters.  Let's say that a line of 4 or more
 equal characters will constitute a record separator.
 
 To parse this file, extracting the text between separators, create a YAML
-config file.  Let's call it ``simple.yaml``:
+config file.  Let's call it ``simple.yaml``::
+
+  ---
+  name: Simple
+  filename: testdata/simple.txt
+  columns: ["Data",]
+  chunk-delimiter: '\s*====+\s*'
+  extract:
+    - regex: '(.*)'
+      mappings: 
+        - [1, 0]
+  output: GUI
+
+
+Run TextSpread with this config file::
+
+  ./text_spread.py simple.yaml
+
+This will display a table with one column (index 0) containing the match
+from group 1 in the regular expression, which in this case grabs
+everything in the chunk.
+
 
 
 Random Notes
@@ -68,18 +94,23 @@ Configuration Options
 
 Each configuration file specified on the command line must be a valid YAML
 file (or JSON, but be sure to escape the regexes properly).  Each config
-file defines a set values that specify the input source, how that input
+file defines settings that specify the input source, how that input
 source should be parsed, and where the output should go.  If output is the
 GUI, each config file defines contents of a table that will be displayed on
 it's own tab.
 
-The following sections describe valid settings.
+The following sections describe the various settings.
 
 
 Compulsory Configuration Settings
 ---------------------------------
 
-The following settings must appear in each configuration file
+The following settings must appear in each configuration file.
+
+(Strange things may happen if any of these are ommitted or incorrectly
+specified, because unfortunately there is fairly minimal sanity checking at
+this stage.)
+
 
 ``output`` 
   Where the output should go.  Valid values are:

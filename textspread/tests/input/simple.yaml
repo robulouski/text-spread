@@ -1,0 +1,9 @@
+---
+name: Simple
+filename: textspread/tests/input/simple.txt
+columns: ["Data",]
+chunk-delimiter: '\s*====+\s*'
+extract:
+  - regex: '(.*)'
+    mappings: 
+      - [1, 0]

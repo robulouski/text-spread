@@ -30,34 +30,34 @@ import PySide.QtGui
 
 from textspread import VERSION_STRING, APPLICATION_NAME
 from textspread.ui.mainwin import MainWindow
-import textspread.config
+from textspread.config import get_parse_list
 
 
 def parse_arguments():
     rv = None
     try:
         import argparse
-        parser = argparse.ArgumentParser(description= APPLICATION_NAME + ': ' + 
-            'Parse data in text files into a more tabular format (table/spreadsheet/database).')
         
-        parser.add_argument('config', help='Configuration filename')
-
+        parser = argparse.ArgumentParser(description= APPLICATION_NAME + ': ' + 
+            'Parse data in text files and convert into a tabular format (table/spreadsheet/database,CSV).')
+        
         parser.add_argument('-i', '--info', action='store_const',
                             const=logging.INFO, dest='loglevel',
                             help='show info messages.')
-    
         parser.add_argument('-q', '--quiet', action='store_const',
                             const=logging.CRITICAL, dest='loglevel',
                             help='show only critical errors.')
-    
         parser.add_argument('-D', '--debug', action='store_const',
                             const=logging.DEBUG, dest='loglevel',
-                            help='show all message, including debug messages.')        
-        
+                            help='show all message, including debug messages.')
+                
         parser.add_argument('-v', '--version', 
                             action='version', 
                             version="%s %s" % (APPLICATION_NAME, 
                                                VERSION_STRING))
+        
+        parser.add_argument('config', nargs='+', help='Configuration filename(s)')
+                
         rv = parser.parse_known_args()[0]
     except ImportError:
         # Just forget the whole command line argument parsing thing if
@@ -82,16 +82,20 @@ def init_logging(level=None):
 
 
 def main():
+    loglevel = None
+    config_filenames = ['config.yaml',]
+
     args = parse_arguments()
     if args:
-        init_logging(args.loglevel)
-        config_filename = args.config
-    else:
-        config_filename = 'config.yaml'
-    plist = textspread.config.get_parse_config(config_filename)
+        loglevel = args.loglevel
+        config_filenames = args.config
+    
+    init_logging(loglevel)
+
+    plist = get_parse_list(config_filenames)
     if not plist:
-        logging.error("Oops!  Something went wrong with the configuration!")
-        sys.exit("CONFIGURATION ERROR")
+        logging.error("Oops!  Aborting due to unrecoverable error!")
+        sys.exit("ERROR ABORT")
     
     app = PySide.QtGui.QApplication(sys.argv)
     mainwin = MainWindow(plist)

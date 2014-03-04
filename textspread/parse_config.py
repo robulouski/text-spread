@@ -32,11 +32,22 @@ import json
 
 logger = logging.getLogger(__name__)
 
+class ParseConfigError(Exception):
+    """Base class for exceptions in this module."""
+    def __init__(self, expr, msg):
+        self.expr = expr
+        self.msg = msg
 
 
 class ParseConfig(object):
-
-    def __init__(self, name="undefined"):
+    """ Stores parsing configuration, and does the parsing."""
+    
+    def __init__(self, name="undefined", config=None):
+        """Set up sane defaults, then if config supplied call initialise().
+        
+           If config not supplied, initialise must be called by user, supplying
+           a valid config object
+        """
         # 
         # Compulsory settings
         #
@@ -47,15 +58,16 @@ class ParseConfig(object):
         # Input file parsed in terms of "chunks", separated by markers, 
         # but which may (or may not) have header information in the first
         # line(s) of the chunk, that applies to everything in the chunk.
-        # Chunks may contain one or more items/records.  If more than one,
-        # it is separated within the chunk by a different (optional) 
-        # marker.
+        # Chunks may contain one or more items/records.  If so, items
+        # are separated within the chunk by a different (optional) 
+        # marker (item_separator_re).
         self.chunk_separator_re = None
         #
         # Optional Settings
         #
         self.main_regex = None
         self.item_separator_re = None #r'\s*--+\s*'
+        self.header_regex = None #r'\s*\d+/\d+/\d+\s*'
         # Chunks/items less than this length will not be parsed.
         self.item_min_length = 1
         self.is_header= False
@@ -64,65 +76,81 @@ class ParseConfig(object):
         # 
         #
         self.result_list = []
-
+        
+        if config:
+            self.initialise(config)
+            
 
     def initialise(self, config):
+        """Set up parsing options.  config is data from a (YAML) config file.
+        
+           Return False for error, True for success. 
+        """
+          
         self.filepath = config.get("filename")
         logger.debug("Initialising ParseConfig: %s", self.name)
         if self.filepath:
             logger.debug("Using input file: %s", self.filepath)
         else:        
-            logger.error("Missing filename in config")
-            return True
+            raise ParseConfigError("initialise", "Missing filename in config")
+
         self.column_list = config["columns"]
         logger.debug("Columns: %d", len(self.column_list))
         self.chunk_separator_re = config["chunk-delimiter"]
         for ex in config["extract"]: 
             self.add_extract(ex["regex"], ex["mappings"], ex.get("subs", None))
         
-        return False
+        return True
     
 
     def add_extract(self, regex, mappings, subs=None):
         #print regex, mappings, subs
         self.extract_list.append((regex, mappings, subs))
         
+        
     def parse(self):
+        """Do the parsing/data-extraction."""
+        
         if not self.filepath:
             return
+        logger.info("Parsing: %s", self.filepath)
         
         f = open(self.filepath)
-        logger.info("Parsing: %s", self.filepath)
 
         try:
             current_text = ""
-            current_date = None
+            current_head = None
             for line in f:
                 l = line.rstrip('\n')
                 if re.match(self.chunk_separator_re, l):
                     if len(current_text) > self.item_min_length:
-                        self.parse_main(current_date, current_text)
+                        self.parse_main(current_head, current_text)
                     current_text = ""
-                    current_date = None
+                    current_head = None
                     continue
                 if self.item_separator_re is not None and re.match(self.item_separator_re, l):
                     if len(current_text) > self.item_min_length:
-                        self.parse_main(current_date, current_text)
+                        self.parse_main(current_head, current_text)
                     current_text = ""
                     continue
-                if current_date is None and re.search(r'\s*\d+/\d+/\d+\s*', l):
-                    #print "Date: ", l
-                    current_date = l
+                if self.header_regex and current_head is None and re.search(self.header_regex, l):
+                    current_head = l
                     continue
                 if len(current_text) > 0 and len(l) > 0:
-                    current_text += " "
+                    current_text += " " # TODO: make this line collapsing configurable
                 current_text += l
-            if len(current_text) > 10:
-                self.parse_main(current_date, current_text)
+            if len(current_text) > self.item_min_length:
+                self.parse_main(current_head, current_text)
         finally:
             f.close()
 
+
     def parse_main(self, block_date, block_text):
+        """We have an item/record.  Check if it matches search criteria.
+        
+           Call parse_extract if it does.
+        """
+        
         #print "parsing: ", block_date
         is_main_match = False
         match_text = ""
@@ -141,7 +169,14 @@ class ParseConfig(object):
             #print '\n'
             self.parse_extract(block_date, match_text)
     
+    
     def parse_extract(self, block_date, text):
+        """Extract matched data out of item.
+        
+           Sets up results array based on mappings.
+           Performs any required substitutions.
+        """
+        
         results = []
         for i in range(0, len(self.column_list)):
             results.append(None)

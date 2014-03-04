@@ -28,35 +28,32 @@
 #
 
 #import importlib
+import sys
 import logging
 import json
 import yaml
 #from pprint import pprint
 
-from textspread.parse_config import ParseConfig
+from textspread.parse_config import ParseConfig, ParseConfigError
 
 
 logger = logging.getLogger(__name__)
 
 
 def get_parse_config(filename):
-    """Read config file(s).  Returns list of ParseConfig objects.
+    """Read a config file, create ParseConfig object from it.
 
-       TODO: read all this from config file
     
     """
     
     logger.info("Reading configuration from: %s", filename)
     config = None
-    plist = []
     
-    try:
-        with open(filename) as f:
-#            config = json.load(f)
+    with open(filename) as f:
+        if filename.endswith(".json"):
+            config = json.load(f)
+        else:
             config = yaml.load(f)
-    except IOError:
-        logger.error("Unable to open config file: %s", filename)
-        return None
 
     #if config:
     #    pprint(config)
@@ -67,10 +64,46 @@ def get_parse_config(filename):
         return None
     
     logger.debug("Creating ParseConfig: %s", name)
-    pc = ParseConfig(name)
-    pc.initialise(config)
-    pc.parse()
-    plist.append(pc)
-    
-    return plist
+    pc = ParseConfig(name, config)
 
+    return pc
+
+
+def get_parse_list(filenames):
+    """Returns list of ParseConfig objects, with parsed data.
+    
+    """
+    
+    config = None
+    # This will be a list of ParseConfig object, returned at the end if successful.
+    plist = []   
+
+    logger.debug("READING CONFIG...")
+        
+    try:
+        for f in filenames:
+            p = get_parse_config(f)
+            if not p:
+                # Something went wrong, abort the whole thing
+                return None
+            plist.append(p)
+    
+        if len(plist) > 0:
+            logger.debug("PARSING...")    
+        else:
+            logger.debug("Nothing to parse...finishing up.")
+            return None 
+        
+        for p in plist:
+            p.parse()
+    
+    except ParseConfigError as e:
+        logger.error("Parse config error: %s", e.msg)
+        return None
+    except IOError as e:
+        logger.error("File error %d: %s", e.errno, e.strerror)
+        return None
+    
+    return plist    
+
+    
