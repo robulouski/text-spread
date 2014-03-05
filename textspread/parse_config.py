@@ -86,7 +86,10 @@ class ParseConfig(object):
         
            Return False for error, True for success. 
         """
-          
+
+        #
+        # Mandatory settings
+        #
         self.filepath = config.get("filename")
         logger.debug("Initialising ParseConfig: %s", self.name)
         if self.filepath:
@@ -99,6 +102,22 @@ class ParseConfig(object):
         self.chunk_separator_re = config["chunk-delimiter"]
         for ex in config["extract"]: 
             self.add_extract(ex["regex"], ex["mappings"], ex.get("subs", None))
+        
+        #
+        # Optional settings
+        #
+        self.item_separator_re = config.get("item-delimiter", None)
+        header = config.get("header", None)
+        #print header
+        if header:
+            re = header.get("regex")
+            index = header.get("index")
+            #print "head:", re, index
+            if re and index is not None:
+                self.header_regex = re
+                self.header_column_index = index
+                self.is_header = True
+                #print "header:", re, index
         
         return True
     
@@ -145,7 +164,7 @@ class ParseConfig(object):
             f.close()
 
 
-    def parse_main(self, block_date, block_text):
+    def parse_main(self, block_header, block_text):
         """We have an item/record.  Check if it matches search criteria.
         
            Call parse_extract if it does.
@@ -167,10 +186,10 @@ class ParseConfig(object):
         if is_main_match:
             #print match_text
             #print '\n'
-            self.parse_extract(block_date, match_text)
+            self.parse_extract(block_header, match_text)
     
     
-    def parse_extract(self, block_date, text):
+    def parse_extract(self, block_header, text):
         """Extract matched data out of item.
         
            Sets up results array based on mappings.
@@ -180,8 +199,8 @@ class ParseConfig(object):
         results = []
         for i in range(0, len(self.column_list)):
             results.append(None)
-        if self.is_header:
-            results[self.header_column_index] = block_date
+        if self.is_header and block_header:
+            results[self.header_column_index] = block_header
         
         for ex in self.extract_list:
             regex = ex[0]

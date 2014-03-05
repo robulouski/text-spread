@@ -56,7 +56,7 @@ def get_parse_config(filename):
             config = yaml.load(f)
 
     #if config:
-    #    pprint(config)
+    #   pprint(config)
 
     name = config.get("name")
     if not name:

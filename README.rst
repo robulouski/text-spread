@@ -87,6 +87,8 @@ Random Notes
 
 * JSON configuration files largely untested at this stage.
 * Newlines between chunks/records are stripped.
+* Copy and paste from the results table grid works using the ususal 
+  keyboard shortcuts. (Menu options coming soon)
 
 
 Configuration Options
@@ -106,18 +108,6 @@ Compulsory Configuration Settings
 ---------------------------------
 
 The following settings must appear in each configuration file.
-
-(Strange things may happen if any of these are ommitted or incorrectly
-specified, because unfortunately there is fairly minimal sanity checking at
-this stage.)
-
-
-``output`` 
-  Where the output should go.  Valid values are:
-
-  * ``GUI``: Displayed in a table in a dialog box.
-  * ``CSV``: CSV file. [unimplemented]
-  * ``DB``: Database.  [unimplemented]
 
 ``name``
   Identifier of output.  If outputting to the GUI, it will be the label of
@@ -161,14 +151,24 @@ this stage.)
 
 
 
-
-
 Optional Configuration Settings
 -------------------------------
 
+``item-delimiter``
+  If specified, any matching lines within a chunk will split the chunk into
+  multiple items.  (Otherwise, a chunk will consist of a single item.)
 
-  
-  
+``header``:
+  An object defining header data, that if present will apply to every item
+  in the chunk.  Must contain the following values:
+
+  ``regex``: Regular expression that will match header lines.  (Only the
+  first line that matches will be the header.)
+
+  ``index``: Index of results array where the matching header line will be
+  stored.
+
+
 
 Author
 ------

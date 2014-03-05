@@ -25,25 +25,28 @@
 import os
 import unittest
 
-from textspread.config import get_parse_config
+from textspread.config import get_parse_config, get_parse_list
 
 CUR_DIR = os.path.dirname(__file__)
 INPUT_PATH = os.path.join(CUR_DIR, 'input')
 
 
 
-class ParseTest(unittest.TestCase):
-    """Test parsing."""
+# class ParseTest(unittest.TestCase):
+#     """Test parsing."""
+# 
+#     def setUp(self):
+#         files = [os.path.join(INPUT_PATH, f) for f in ('simple.yaml', 'simple_date.yaml')]
+#         self.pc_list = get_parse_list(files)
 
-    def setUp(self):
-        self.pc = get_parse_config(os.path.join(INPUT_PATH, 'simple.yaml'))
 
-    def test_simple(self):
+class SimpleTest(unittest.TestCase):
+    def runTest(self):
         """Ultra simple case: Single item between ==== delimiters."""
-        
-        pc = self.pc
-        pc.parse()
+
+        pc =  get_parse_config(os.path.join(INPUT_PATH, 'simple.yaml'))
         self.assertTrue(pc.name == "Simple")
+        pc.parse()
         
         results = pc.result_list
         self.assertTrue(results[0][0] == "text 1")
@@ -55,6 +58,42 @@ class ParseTest(unittest.TestCase):
         self.assertTrue(results[6][0] == "text 7")
 
 
+class SimpleDateTest(unittest.TestCase):
+    def runTest(self):
+        """Bit more complex: Multiple items between ==== delimiters, date header."""
+
+        pc =  get_parse_config(os.path.join(INPUT_PATH, 'simple_date.yaml'))
+        self.assertTrue(pc.name == "Simple Date")
+        pc.parse()
+        
+        results = pc.result_list
+#        print results
+        self.assertEqual(results[0][0], "01/02/14")
+        self.assertEqual(results[0][1], "item 1")
+        self.assertEqual(results[1][0], "02/02/14")
+        self.assertEqual(results[1][1], "item 2")
+        self.assertEqual(results[2][0], "03/02/14")
+        self.assertEqual(results[2][1], "item 3 line2")
+        self.assertEqual(results[3][0], "03/02/14")
+        self.assertEqual(results[3][1], "item 4")
+        self.assertEqual(results[4][0], "04/02/14")
+        self.assertEqual(results[4][1], "item 5 another line another paragraph")
+        self.assertEqual(results[5][0], "04/02/14")
+        self.assertEqual(results[5][1], "item 6 another line another paragraph")
+        self.assertEqual(results[6][0], "04/02/14")
+        self.assertEqual(results[6][1], "item 7 another line another paragraph")
+        self.assertEqual(results[7][0], "05/02/14")
+        self.assertEqual(results[7][1], "item 8")
+        self.assertIsNone(results[8][0])
+        self.assertEqual(results[8][1], "item 9")
+        self.assertIsNone(results[9][0])
+        self.assertEqual(results[9][1], "item 10")
+        self.assertIsNone(results[10][0])
+        self.assertEqual(results[10][1], "item 11")
+        self.assertEqual(results[11][0], "06/02/14")
+        self.assertEqual(results[11][1], "item 12")
+
+
 if __name__ == '__main__':
     unittest.main()
-    
+
