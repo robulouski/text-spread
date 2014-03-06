@@ -1,0 +1,13 @@
+---
+name: Simple Date
+filename: textspread/tests/input/simple_date.txt
+columns: ["Date", "Items",]
+chunk-delimiter: '\s*====+\s*'
+item-delimiter: '\s*----+\s*'
+header:
+  regex: '\s*\d+/\d+/\d+\s*'
+  index: 0
+extract:
+  - regex: '(.*)'
+    mappings: 
+      - [1, 1]

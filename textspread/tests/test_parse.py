@@ -94,6 +94,31 @@ class SimpleDateTest(unittest.TestCase):
         self.assertEqual(results[11][1], "item 12")
 
 
+
+class StocksTest(unittest.TestCase):
+    def runTest(self):
+        """Test filter and substitutions."""
+
+        pc =  get_parse_config(os.path.join(INPUT_PATH, 'stocks.yaml'))
+        self.assertTrue(pc.name == "Stocks")
+        pc.parse()
+        
+        results = pc.result_list
+#        print results
+        expected = [
+                    ['AAA',  'NYSE',   'LONG',  '16/01/2013'],
+                    ['BBB',  'NYSE',   'SHORT', '17/01/2013'],
+                    ['CCC',  'NYSE',   'LONG',  '29/01/2013'],
+                    ['DDDD', 'NASDAQ', 'LONG',  '29/01/2013'],
+                    ['EEEE', 'NASDAQ', 'SHORT', '29/01/2013'],
+                    ]
+        self.assertEqual(results[0], expected[0])
+        self.assertEqual(results[1], expected[1])
+        self.assertEqual(results[2], expected[2])
+        self.assertEqual(results[3], expected[3])
+        self.assertEqual(results[4], expected[4])
+        
+        
 if __name__ == '__main__':
     unittest.main()
 

@@ -32,7 +32,6 @@ import sys
 import logging
 import json
 import yaml
-#from pprint import pprint
 
 from textspread.parse_config import ParseConfig, ParseConfigError
 
@@ -55,8 +54,9 @@ def get_parse_config(filename):
         else:
             config = yaml.load(f)
 
-    #if config:
-    #   pprint(config)
+#     if config:
+#        from pprint import pprint
+#        pprint(config)
 
     name = config.get("name")
     if not name:

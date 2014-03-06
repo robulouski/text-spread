@@ -18,17 +18,18 @@
 #
 ############################################################################
 #
-#  parse_config.py
-#  
-#  Primary parser module, implemented as possibly mis-named ParseConfig class.
-#  Stores configuration data (input files) and parsing options (regexes).
-#  Also does the actual parsing.
-#
+"""parse_config.py
+ 
+Primary parser module, implemented as possibly mis-named ParseConfig class.
+Stores configuration data (input files) and parsing options (regexes).
+Also does the actual parsing.
+
+"""
 
 
 import re
 import logging
-import json
+
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,8 @@ class ParseConfig(object):
     def initialise(self, config):
         """Set up parsing options.  config is data from a (YAML) config file.
         
-           Return False for error, True for success. 
+           Raises ParseConfigError for some errors, but file errors mostly left
+           to propagate. 
         """
 
         #
@@ -106,6 +108,7 @@ class ParseConfig(object):
         #
         # Optional settings
         #
+        self.main_regex = config.get("filter", None)
         self.item_separator_re = config.get("item-delimiter", None)
         header = config.get("header", None)
         #print header
@@ -117,9 +120,6 @@ class ParseConfig(object):
                 self.header_regex = re
                 self.header_column_index = index
                 self.is_header = True
-                #print "header:", re, index
-        
-        return True
     
 
     def add_extract(self, regex, mappings, subs=None):
@@ -220,8 +220,8 @@ class ParseConfig(object):
                             results[r_index] = res
             if subs:
                 for s in subs:
-                    res_index = s[0]
-                    sub_list = s[1]
+                    res_index = s['index']  # index on which substitution will be attempted
+                    sub_list = s['replacements']  # list of substitutions, attempted in order given.
                     for sl in sub_list:
                         if results[res_index] and results[res_index].lower() == sl[0].lower():
                             results[res_index] = sl[1]

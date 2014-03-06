@@ -87,6 +87,7 @@ Random Notes
 
 * JSON configuration files largely untested at this stage.
 * Newlines between chunks/records are stripped.
+* Searches are case insensitive.
 * Copy and paste from the results table grid works using the ususal 
   keyboard shortcuts. (Menu options coming soon)
 
@@ -128,26 +129,29 @@ The following settings must appear in each configuration file.
   Regular expression that specifies the delimiter between chunks of data.
 
 ``extract``
-  Defines the data to be extracted from each item.  An object that defines
-  the following:
+  Defines the data to be extracted from each item.  Must contain the 
+  following:
 
-  ``regex``: A regular expression, including parenthesized groups.
+  - ``regex``: A regular expression, including parenthesized groups.
   
-  ``mappings``: A list of mappings between groups captured by the above
-  regular expression, and column indexes where the results will be
-  stored.  Each element of the list must be a 2 element list:
+  - ``mappings``: A list of mappings between groups captured by the above
+    regular expression, and column indexes where the results will be
+    stored.  Each element of the list must be a 2 element list:
+    ``[group-number, column-index]``
 
-  [group-number, column-index]
+    For example, a mappings value of ``[[1,0], [2,1]]`` means that group 1
+    matched by the regex corresponds to the output value of column index 0,
+    and group 2 corresponds to column index 1.
 
-  For example, a mappings value of ``[[1,0], [2,1]]`` means that group 1
-  matched by the regex corresponds to the output value of column index 0,
-  and group 2 corresponds to column index 1.
+    ``subs``: Optional substitutions.  If present, facilitates simple
+    search-and-replace actions on matched data.  Must be a list where each
+    element contains the following:
 
-  ``subs``: A list mapping substitutions.  This is optional, and can be
-  omitted.  If present, it allows simple manipulations on matched data to
-  be performed before being output.  For example, numeric values can be
-  remapped to alphanumeric strings, and vice-versa.
+    - ``index``: Index of results on which to attempt the substitution.
 
+    - ``replacements``: A list that specifies the substitutions.  Each item
+      must be a 2 element list [a, b] where a is the text to search for,
+      and b is the replacement text.    
 
 
 
@@ -158,7 +162,11 @@ Optional Configuration Settings
   If specified, any matching lines within a chunk will split the chunk into
   multiple items.  (Otherwise, a chunk will consist of a single item.)
 
-``header``:
+``filter`` 
+  Optional regular expression, if specified any items NOT matching will be
+  skipped.
+
+``header``
   An object defining header data, that if present will apply to every item
   in the chunk.  Must contain the following values:
 
