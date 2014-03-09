@@ -23,8 +23,6 @@
 #  config.py
 #
 #  Read/parse config files, initialise ParseConfig arrays.
-#  TODO: 
-#   - Read all this from config file(s)
 #
 
 #import importlib

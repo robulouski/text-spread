@@ -1,5 +1,5 @@
 #  TextSpread
-#  Copyright (C) 2013 Robert Iwancz
+#  Copyright (C) 2013-2014 Robert Iwancz
 #
 #  This file is part of TextSpread.
 #
@@ -21,6 +21,6 @@
 
 APPLICATION_NAME = "TextSpread"
 
-version_data = (0, 3, 0)
+version_data = (0, 5, 0)
 VERSION_STRING = "%d.%d.%d" % version_data
 __version__ = VERSION_STRING

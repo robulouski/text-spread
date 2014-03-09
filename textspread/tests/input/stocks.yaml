@@ -4,12 +4,12 @@ filename: textspread/tests/input/stocks.txt
 columns: ["Stock", "Exchange", "Direction", "Date"]
 chunk-delimiter: '\s*====+\s*'
 item-delimiter: '\s*----+\s*'
-filter: '((?:buy|sell).*?\([A-Z]+:\s*[A-Z]+\))'
+filter: '((?:buy|sell)?.*?\([A-Z]+:\s*[A-Z]+\))'
 header:
   regex: '\s*\d+/\d+/\d+\s*'
   index: 3
 extract:
-  - regex: '(buy|sell)\w*\s*\(([A-Z]+):\s*([A-Z]+)\)'
+  - regex: '(buy|sell)?\w*\s*\(([A-Z]+):\s*([A-Z]+)\)'
     mappings: 
       - [1, 2]
       - [2, 1]

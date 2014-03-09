@@ -139,6 +139,7 @@ class ParseConfig(object):
         try:
             current_text = ""
             current_head = None
+            
             for line in f:
                 l = line.rstrip('\n')
                 if re.match(self.chunk_separator_re, l):
@@ -158,6 +159,7 @@ class ParseConfig(object):
                 if len(current_text) > 0 and len(l) > 0:
                     current_text += " " # TODO: make this line collapsing configurable
                 current_text += l
+            
             if len(current_text) > self.item_min_length:
                 self.parse_main(current_head, current_text)
         finally:

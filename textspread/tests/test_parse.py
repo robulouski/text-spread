@@ -108,6 +108,7 @@ class StocksTest(unittest.TestCase):
         expected = [
                     ['AAA',  'NYSE',   'LONG',  '16/01/2013'],
                     ['BBB',  'NYSE',   'SHORT', '17/01/2013'],
+                    ['ZZZZ', 'NASDAQ',  None,   '18/01/2013'],
                     ['CCC',  'NYSE',   'LONG',  '29/01/2013'],
                     ['DDDD', 'NASDAQ', 'LONG',  '29/01/2013'],
                     ['EEEE', 'NASDAQ', 'SHORT', '29/01/2013'],
@@ -117,6 +118,7 @@ class StocksTest(unittest.TestCase):
         self.assertEqual(results[2], expected[2])
         self.assertEqual(results[3], expected[3])
         self.assertEqual(results[4], expected[4])
+        self.assertEqual(results[5], expected[5])
         
         
 if __name__ == '__main__':

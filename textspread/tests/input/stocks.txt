@@ -7,6 +7,11 @@ blah blah blah buy (NYSE: AAA) blah blah blah
 blah blah blah sell (NYSE: BBB) blah blah blah
 
 ===========================================================================
+18/01/2013
+
+no direction but we still want the stock code (NASDAQ: ZZZZ) blah blah blah
+
+===========================================================================
 20/01/2013
 
 Nothing to see here...

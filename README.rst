@@ -5,14 +5,17 @@ An attempt at a general purpose solution to the problem of extracting data
 from (reasonably well formatted) text files and presenting that data in a
 tabular format (i.e. spreadsheet).
 
-The basic idea is that there will be config file(s) which specify 
-filename(s) along with regexes and options for how the file(s) should be 
-parsed, and into which column data extracted with the regexes should go.  
-Once parsed a simple GUI displays the extracted data in table widgets (on 
-a separate tab for each file), with the possibility from there to copy and
+The basic idea is that instead of having to write a custom script every
+time you might want to extract data out of a text file, you just write a
+config file instead.  The config file will specify things like input
+filename, regular expressions for finding data, options for how the file
+should be parsed, and details about which column bits of data should go.
+
+Once parsed a simple GUI displays the extracted data in table widgets (on a
+separate tab for each file), with the possibility from there to copy and
 paste selectively, or save the whole thing as a CVS file, spreadsheet, etc.
 
-Written in Python with PySide Qt bindings.
+Written in Python (2.7) with PySide Qt bindings.
 
 
 Motivation
@@ -44,7 +47,7 @@ date, the first line of the chunk being the date, which applies to all
 items in that chunk.)
 
 The goal of TextSpread is to provide the ability to parse and extract data
-from such files by writing a simple YAML configuration file -- instead of
+from such files by writing a concise YAML configuration file -- instead of
 having to write/modify bespoke scripts with lots of boilerplate code.
 
 
@@ -80,15 +83,53 @@ This will display a table with one column (index 0) containing the match
 from group 1 in the regular expression, which in this case grabs
 everything in the chunk.
 
+Now consider a more complicated scenario.  Let's say we have a text file
+where the text mentions stock codes.  The stock codes are consistently
+written in uppercase, prefixed with the exchange, and the whole thing is in
+parentheses, like this: (NYSE: NYA).  The words "buy" or "sell" may appear
+in the text somewhere before the stock code.  As before, let's say chunks
+are delimited by a line of '=' chars, and each chunk can contain multiple
+items delimited by a line of '-' chars.  A chunk may contain header data
+consisting of a date using slashes (e.g. 1/1/2014).
+
+We want to output the stock code in column index 0, exchange in 1,
+direction (buy/sell) in 2, and date in 3.  But also, let's say we want to
+remap the words "buy" and "sell" to "LONG" and "SHORT", respectively.  A
+config file like this should do the trick::
+
+  ---
+  name: Stocks
+  filename: textspread/tests/input/stocks.txt
+  columns: ["Stock", "Exchange", "Direction", "Date"]
+  chunk-delimiter: '\s*====+\s*'
+  item-delimiter: '\s*----+\s*'
+  filter: '((?:buy|sell)?.*?\([A-Z]+:\s*[A-Z]+\))'
+  header:
+	regex: '\s*\d+/\d+/\d+\s*'
+	index: 3
+  extract:
+	- regex: '(buy|sell)?\w*\s*\(([A-Z]+):\s*([A-Z]+)\)'
+	  mappings: 
+		- [1, 2]
+		- [2, 1]
+		- [3, 0]
+	  subs: 
+		- index: 2
+		  replacements: 
+			- ['buy', 'LONG']
+			- ['sell', 'SHORT']
+
 
 
 Random Notes
 ------------
 
 * JSON configuration files largely untested at this stage.
-* Newlines between chunks/records are stripped.
-* Searches are case insensitive.
-* Copy and paste from the results table grid works using the ususal 
+* Not a lot of sanity checking is done on the config files, so if they're
+  not quite right a somewhat unhelpful exception error will probably occur.
+* Newlines are stripped.  This may be configurable in the future.
+* Searches are case insensitive.  Should also probably be configurable, but isn't.
+* Copy and paste from the results table grid works using the usual 
   keyboard shortcuts. (Menu options coming soon)
 
 
@@ -164,17 +205,20 @@ Optional Configuration Settings
 
 ``filter`` 
   Optional regular expression, if specified any items NOT matching will be
-  skipped.
+  skipped.  Note that if specified, this is the first regex match
+  attempted, and only the part of the "item" matching this regex will be
+  used for subsequent data extraction (via the ``extract`` option).  In
+  other words, anything NOT matching this regex will be ignored.
 
 ``header``
   An object defining header data, that if present will apply to every item
   in the chunk.  Must contain the following values:
 
-  ``regex``: Regular expression that will match header lines.  (Only the
-  first line that matches will be the header.)
+  - ``regex``: Regular expression that will match header lines.  (Only the
+    first line that matches will be the header.)
 
-  ``index``: Index of results array where the matching header line will be
-  stored.
+  - ``index``: Index of results array where the matching header line will be
+    stored.
 
 
 
