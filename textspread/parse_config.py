@@ -73,6 +73,7 @@ class ParseConfig(object):
         self.item_min_length = 1
         self.is_header= False
         self.header_column_index = 0
+        self.header_sub = None
         #
         # 
         #
@@ -120,6 +121,8 @@ class ParseConfig(object):
                 self.header_regex = re
                 self.header_column_index = index
                 self.is_header = True
+                self.header_sub = header.get("sub", None)
+
     
 
     def add_extract(self, regex, mappings, subs=None):
@@ -202,7 +205,10 @@ class ParseConfig(object):
         for i in range(0, len(self.column_list)):
             results.append(None)
         if self.is_header and block_header:
-            results[self.header_column_index] = block_header
+            if self.header_sub:
+                results[self.header_column_index] = re.sub(self.header_sub[0], self.header_sub[1], block_header)
+            else:
+                results[self.header_column_index] = block_header
         
         for ex in self.extract_list:
             regex = ex[0]

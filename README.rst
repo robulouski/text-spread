@@ -220,6 +220,11 @@ Optional Configuration Settings
   - ``index``: Index of results array where the matching header line will be
     stored.
 
+  - ``sub``: Optional substitution on the header.  If present, must be a 2
+    item array, the values of which basically correspond to the first 2
+    arguments to the Python ``re.sub()`` function.  The first element is a
+    regexp defining what to replace , the second is what to replace it
+    with.
 
 
 Author
