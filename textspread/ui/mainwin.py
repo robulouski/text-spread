@@ -33,12 +33,15 @@ from PySide.QtGui import *
 
 from textspread import VERSION_STRING, APPLICATION_NAME
 from textspread.ui.table_widget_custom import TableWidgetCustom 
+from textspread.config import get_parse_list
+
 
 class ResultTab(object):
     pass
 
+
 class MainWindow(QMainWindow):
-    def __init__(self, plist=None):
+    def __init__(self, cfgfiles=None):
         super(MainWindow, self).__init__()
         self.resize(1130, 500)
         # Is this necessary???
@@ -46,45 +49,67 @@ class MainWindow(QMainWindow):
         status = self.statusBar()
         #status.setSizeGripEnabled(False)
         #status.addPermanentWidget(self.sizeLabel)
-        status.showMessage(APPLICATION_NAME + ' ' + VERSION_STRING)                 
+        status.showMessage(APPLICATION_NAME + ' ' + VERSION_STRING)    
         self.setWindowTitle(APPLICATION_NAME)       
         self.createMenus()
-
-        tabWidget = QTabWidget()
+        self.tabWidget = QTabWidget()
 
         # 
         # Display results.  One tab for each file.  Each tab contains a 
         # (custom) QTableWidget.
         #        
-        self.tabList = []
-        self.parseList = plist 
-        if self.parseList:
-            for p in self.parseList:
-                t = ResultTab()
-                t.parseConfig = p
-                t.resultTable = TableWidgetCustom()
-                if p.column_list and len(p.column_list) > 0:
-                    t.resultTable.setColumnCount(len(p.column_list))
-                    t.resultTable.setHorizontalHeaderLabels(p.column_list)
-                    if p.result_list:
-                        t.resultTable.setRowCount(len(p.result_list))
-                        row_index = 0
-                        for row in p.result_list:
-                            for col in range(0, len(p.column_list)):
-                                if row[col]:
-                                    item = QTableWidgetItem(row[col])
-                                    t.resultTable.setItem(row_index, col, item)
-                            row_index = row_index + 1
-                        if row_index > 0:
-                            t.resultTable.setCurrentCell(row_index - 1, 0)
-                tabWidget.addTab(t.resultTable, p.name)
-                self.tabList.append(t)
-        
-        self.setCentralWidget(tabWidget)
+        self.parseList = None
+        self.configFilenames = cfgfiles
+        self.loadData();
+        self.populateData();
+        self.setCentralWidget(self.tabWidget)
+
+    def populateData(self):
+        if not self.parseList:
+            return
+
+        #self.tabList = []
+        for p in self.parseList:
+            resultTable = TableWidgetCustom()
+            #t = ResultTab()
+            #t.parseConfig = p
+            #t.resultTable = resultTable
+            if p.column_list and len(p.column_list) > 0:
+                resultTable.setColumnCount(len(p.column_list))
+                resultTable.setHorizontalHeaderLabels(p.column_list)
+                if p.result_list:
+                    resultTable.setRowCount(len(p.result_list))
+                    row_index = 0
+                    for row in p.result_list:
+                        for col in range(0, len(p.column_list)):
+                            if row[col]:
+                                item = QTableWidgetItem(row[col])
+                                resultTable.setItem(row_index, col, item)
+                        row_index = row_index + 1
+                    if row_index > 0:
+                        resultTable.setCurrentCell(row_index - 1, 0)
+            self.tabWidget.addTab(resultTable, p.name)
+            #self.tabList.append(t)
         
 
-        
+    def loadData(self):
+        plist = get_parse_list(self.configFilenames)
+        if not plist:
+            logging.error("Oops!  Error loading data!")
+            QMessageBox.warning(self, "Error", "Error loading data")
+            #sys.exit("ERROR ABORT")
+        self.parseList = plist
+
+    def refreshData(self):
+        self.tabWidget.clear()
+        self.loadData()
+        self.populateData();
+
+
     def createMenus(self):
+        fileRefreshAct = QAction("Refresh", self, shortcut="F5",
+                statusTip="Reload all data",
+                triggered=self.refreshData)
         fileExitAct = QAction("E&xit", self, shortcut="Ctrl+Q",
                 statusTip="Exit the application", triggered=self.close)
         
@@ -93,6 +118,7 @@ class MainWindow(QMainWindow):
                 triggered=self.about)
         
         self.fileMenu = self.menuBar().addMenu("&File")
+        self.fileMenu.addAction(fileRefreshAct)
         self.fileMenu.addAction(fileExitAct)
         
         self.helpMenu = self.menuBar().addMenu("&Help")

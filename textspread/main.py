@@ -30,7 +30,6 @@ import PySide.QtGui
 
 from textspread import VERSION_STRING, APPLICATION_NAME
 from textspread.ui.mainwin import MainWindow
-from textspread.config import get_parse_list
 
 
 def parse_arguments():
@@ -92,12 +91,7 @@ def main():
     
     init_logging(loglevel)
 
-    plist = get_parse_list(config_filenames)
-    if not plist:
-        logging.error("Oops!  Aborting due to unrecoverable error!")
-        sys.exit("ERROR ABORT")
-    
     app = PySide.QtGui.QApplication(sys.argv)
-    mainwin = MainWindow(plist)
+    mainwin = MainWindow(config_filenames)
     mainwin.show()
     app.exec_()
