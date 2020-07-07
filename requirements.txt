@@ -1,2 +1,2 @@
-PyYAML==3.10
+PyYAML==5.1
 pyside==1.1.2
